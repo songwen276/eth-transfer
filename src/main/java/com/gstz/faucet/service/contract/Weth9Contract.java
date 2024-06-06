@@ -50,7 +50,7 @@ public class Weth9Contract {
   /**
    * 批量将ETH转换为WETH
    */
-  public void ethTransfer() {
+  public void ethTransfer(String eth) {
     try {
       long chainId = Web3jUtils.getChainId();
       Web3j web3j = Web3jUtils.web3j;
@@ -61,17 +61,18 @@ public class Weth9Contract {
           new BigInteger(Web3jUtils.gaslimit));
 
       // 批量转换ETH为WETH
-      ethTransfer.forEach((address, eth) -> {
+      ethTransfer.forEach((address, privateKey) -> {
         try {
           // 获取账户余额
           String addressStr = String.valueOf(address);
+          String privateKeyStr = String.valueOf(privateKey);
           BigDecimal etherBalance = Web3jUtils.getEtherBalance(addressStr);
           BigInteger nonce = Web3jUtils.getNonce(addressStr);
           log.info("当前要转换的钱包地址是：{}，钱包余额是：{}，nonce是：{}，要转换的ETH个数是：{}",
               addressStr, etherBalance, nonce, eth);
 
           // 加载WETH合约
-          Weth9 weth9 = Weth9.load(WETH_CONTRACT_ADDRESS, web3j, Credentials.create(addressStr),
+          Weth9 weth9 = Weth9.load(WETH_CONTRACT_ADDRESS, web3j, Credentials.create(privateKeyStr),
               gasProvider);
 
           // 转换

@@ -20,7 +20,7 @@ public class EthTransferTest {
 
   @Test
   public void testEthTransfer() {
-    ethTransfer.ethTransfer();
+    ethTransfer.ethTransfer("1");
   }
 
   @Test

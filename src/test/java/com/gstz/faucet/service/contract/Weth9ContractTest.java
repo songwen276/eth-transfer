@@ -19,6 +19,6 @@ public class Weth9ContractTest {
 
     @Test
     public void testEthTransfer() {
-        weth9Contract.ethTransfer();
+        weth9Contract.ethTransfer("1");
     }
 }

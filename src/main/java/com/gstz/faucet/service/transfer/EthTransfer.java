@@ -60,19 +60,20 @@ public class EthTransfer {
   /**
    * 批量发送特定eth到合约
    */
-  public void ethTransfer() {
+  public void ethTransfer(String eth) {
     // 批量转换ETH为WETH
-    ethTransfer.forEach((address, eth) -> {
+    ethTransfer.forEach((address, privateKey) -> {
       try {
         // 获取账户余额和nonce
         String addressStr = String.valueOf(address);
+        String privateKeyStr = String.valueOf(privateKey);
         BigDecimal etherBalance = Web3jUtils.getEtherBalance(addressStr);
         BigInteger nonce = Web3jUtils.getNonce(addressStr);
         log.info("当前要转换的钱包地址是：{}，钱包余额是：{}，nonce是：{}，要转换的ETH个数是：{}",
             addressStr, etherBalance, nonce, eth);
 
         TransactionReceipt transactionReceipt = Transfer.sendFundsEIP1559(Web3jUtils.web3j,
-            Credentials.create(addressStr), WETH_CONTRACT_ADDRESS,
+            Credentials.create(privateKeyStr), WETH_CONTRACT_ADDRESS,
             new BigDecimal(String.valueOf(eth)), Convert.Unit.ETHER,
             new BigInteger(Web3jUtils.gaslimit), new BigInteger(Web3jUtils.maxPriorityFeePerGas),
             new BigInteger(Web3jUtils.maxFeePerGas)).sendAsync().get();
