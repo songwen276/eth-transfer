@@ -30,11 +30,15 @@ public class EthDistribute {
 
   // 要转换ETH的地址和金额
   static Properties subAddress = new Properties();
+  static Properties collectaAddress = new Properties();
 
   static {
     try (FileInputStream addressFis = new FileInputStream(
-        Web3jUtils.workPath + Web3jUtils.separator + "subaddress.properties")) {
+        Web3jUtils.workPath + Web3jUtils.separator + "subaddress.properties");
+        FileInputStream collectaAddressFis = new FileInputStream(
+            Web3jUtils.workPath + Web3jUtils.separator + "collectaddress.properties")) {
       subAddress.load(addressFis);
+      collectaAddress.load(collectaAddressFis);
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -45,8 +49,8 @@ public class EthDistribute {
    */
   public static void collectTokens() {
     try {
-      // 获取子账户地址
-      Collection<String> keys = subAddress.values().parallelStream().map(Object::toString).toList();
+      // 获取收集账户地址
+      Collection<String> keys = collectaAddress.values().parallelStream().map(Object::toString).toList();
       // 循环将子地址代币集中到主账户
       for (String key : keys) {
         // 获取子账户余额
@@ -148,7 +152,7 @@ public class EthDistribute {
         String subAddress = Credentials.create(key).getAddress();
         BigDecimal subEtherBalance = Web3jUtils.getEtherBalance(subAddress);
         log.info("当前子账户余额不小于4，直接跳过");
-        if (subEtherBalance.compareTo(new BigDecimal(4)) < 0) {
+        if (subEtherBalance.compareTo(new BigDecimal("4.6")) < 0) {
           log.info("当前子账户余额小于4，开始补充{}个eth", amountPerRecipient);
           TransactionReceipt transactionReceipt = Transfer.sendFundsEIP1559(web3j, credentials,
               subAddress, amountPerRecipient, Convert.Unit.ETHER,

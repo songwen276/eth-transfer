@@ -37,14 +37,14 @@ public class StrategyManagerContract {
   static StaticEIP1559GasProvider gasProvider;
 
   // 要转换ETH的地址和金额
-  static Properties wethRestake = new Properties();
+  static Properties ethTransfer = new Properties();
 
   static {
     workPath = System.getProperty("user.dir");
     separator = System.getProperty("file.separator");
     try (FileInputStream addressFis = new FileInputStream(
         workPath + separator + "transferaddress.properties")) {
-      wethRestake.load(addressFis);
+      ethTransfer.load(addressFis);
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -61,7 +61,7 @@ public class StrategyManagerContract {
     try {
       Web3j web3j = Web3jUtils.web3j;
       // 批量质押WETH
-      wethRestake.forEach((address, privateKey) -> {
+      ethTransfer.forEach((address, privateKey) -> {
         try {
           // 获取账户余额
           String addressStr = String.valueOf(address);
