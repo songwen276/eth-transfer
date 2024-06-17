@@ -71,25 +71,28 @@ public class StrategyManagerContract {
           log.info("当前要质押的钱包地址是：{}，钱包余额是：{}，nonce是：{}，要质押的WETH个数是：{}",
               addressStr, wetherBalance, nonce, weth);
 
-          // 加载EIGENLAYER_RESTAKE合约
-          StrategyManager strategyManager = StrategyManager.load(
-              EIGEN_RESTAKE_CONTRACT_ADDRESS, web3j, Credentials.create(privateKeyStr),
-              gasProvider);
+          if (wetherBalance.compareTo(new BigDecimal("1")) > 0) {
+            // 加载EIGENLAYER_RESTAKE合约
+            StrategyManager strategyManager = StrategyManager.load(
+                EIGEN_RESTAKE_CONTRACT_ADDRESS, web3j, Credentials.create(privateKeyStr),
+                gasProvider);
 
-          // 质押
-          BigDecimal ethAmount = new BigDecimal(String.valueOf(weth));
-          BigInteger weiAmount = Convert.toWei(ethAmount, Convert.Unit.ETHER).toBigInteger();
-          TransactionReceipt receipt = strategyManager.depositIntoStrategy(STRATEGY,
-              Weth9Contract.WETH_CONTRACT_ADDRESS, weiAmount).sendAsync().get();
+            // 质押
+            BigDecimal ethAmount = new BigDecimal(String.valueOf(weth));
+            BigInteger weiAmount = Convert.toWei(ethAmount, Convert.Unit.ETHER).toBigInteger();
+            TransactionReceipt receipt = strategyManager.depositIntoStrategy(STRATEGY,
+                Weth9Contract.WETH_CONTRACT_ADDRESS, weiAmount).sendAsync().get();
 
-          // 获取交易哈希
-          String transactionHash = receipt.getTransactionHash();
+            // 获取交易哈希
+            String transactionHash = receipt.getTransactionHash();
 
-          // 获取质押转换后余额
-          BigDecimal trWetherBalance = Weth9Contract.getBalance(addressStr);
-          BigInteger trNonce = Web3jUtils.getNonce(addressStr);
-          log.info("{}质押后余额是：{}，nonce是：{}，交易哈希是：{}", addressStr, trWetherBalance,
-              trNonce, transactionHash);
+            // 获取质押转换后余额
+            BigDecimal trWetherBalance = Weth9Contract.getBalance(addressStr);
+            BigInteger trNonce = Web3jUtils.getNonce(addressStr);
+            log.info("{}质押后余额是：{}，nonce是：{}，交易哈希是：{}", addressStr, trWetherBalance,
+                trNonce, transactionHash);
+          }
+
         } catch (Exception e) {
           throw new RuntimeException(e);
         }

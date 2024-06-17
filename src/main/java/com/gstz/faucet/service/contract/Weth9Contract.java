@@ -57,7 +57,7 @@ public class Weth9Contract {
   /**
    * 批量将ETH转换为WETH
    */
-  public void ethTransfer(String eth) {
+  public void ethDeposit(String eth) {
     try {
       Web3j web3j = Web3jUtils.web3j;
       // 批量转换ETH为WETH
@@ -71,27 +71,108 @@ public class Weth9Contract {
           log.info("当前要转换的钱包地址是：{}，钱包余额是：{}，nonce是：{}，要转换的ETH个数是：{}",
               addressStr, etherBalance, nonce, eth);
 
-          // 加载WETH合约
-          Weth9 weth9 = Weth9.load(WETH_CONTRACT_ADDRESS, web3j, Credentials.create(privateKeyStr),
-              gasProvider);
+          if (etherBalance.compareTo(new BigDecimal("22")) > 0) {
+            // 加载WETH合约
+            Weth9 weth9 = Weth9.load(WETH_CONTRACT_ADDRESS, web3j,
+                Credentials.create(privateKeyStr),
+                gasProvider);
 
-          // 转换
-          BigDecimal ethAmount = new BigDecimal(String.valueOf(eth));
-          BigInteger weiAmount = Convert.toWei(ethAmount, Convert.Unit.ETHER).toBigInteger();
-          TransactionReceipt receipt = weth9.deposit(weiAmount).sendAsync().get();
+            // 转换
+            BigDecimal ethAmount = new BigDecimal(String.valueOf(eth));
+            BigInteger weiAmount = Convert.toWei(ethAmount, Convert.Unit.ETHER).toBigInteger();
+            TransactionReceipt receipt = weth9.deposit(weiAmount).sendAsync().get();
 
-          // 获取交易哈希
-          String transactionHash = receipt.getTransactionHash();
+            // 获取交易哈希
+            String transactionHash = receipt.getTransactionHash();
 
-          // 获取账户转换后余额
-          BigDecimal trEtherBalance = Web3jUtils.getEtherBalance(addressStr);
-          BigInteger trNonce = Web3jUtils.getNonce(addressStr);
-          log.info("{}转换后余额是：{}，nonce是：{}，交易哈希是：{}", addressStr, trEtherBalance,
-              trNonce, transactionHash);
+            // 获取账户转换后余额
+            BigDecimal trEtherBalance = Web3jUtils.getEtherBalance(addressStr);
+            BigInteger trNonce = Web3jUtils.getNonce(addressStr);
+            log.info("{}转换后余额是：{}，nonce是：{}，交易哈希是：{}", addressStr, trEtherBalance,
+                trNonce, transactionHash);
+          }
         } catch (Exception e) {
           throw new RuntimeException(e);
         }
       });
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * 批量将转发WETH
+   */
+  public void ethTransfer(String eth) {
+    try {
+      // 加载WETH合约
+      Web3j web3j = Web3jUtils.web3j;
+      Weth9 weth9 = Weth9.load(WETH_CONTRACT_ADDRESS, web3j, Web3jUtils.credentials, gasProvider);
+      String mainAddress = Web3jUtils.credentials.getAddress();
+      // 批量将转发WETH
+      ethTransfer.forEach((address, privateKey) -> {
+        try {
+          // 获取账户余额
+          BigDecimal balance = getBalance(mainAddress);
+          BigInteger nonce = Web3jUtils.getNonce(mainAddress);
+          log.info("当前主钱包地址是：{}，钱包余额是：{}，nonce是：{}，要转换的ETH个数是：{}", mainAddress,
+              balance, nonce, eth);
+
+          // 转换
+          String subAddress = String.valueOf(address);
+          BigDecimal subBanlance = getBalance(subAddress);
+          if (subBanlance.compareTo(new BigDecimal("2")) < 0) {
+            BigDecimal ethAmount = new BigDecimal(String.valueOf(eth));
+            BigInteger weiAmount = Convert.toWei(ethAmount, Convert.Unit.ETHER).toBigInteger();
+            TransactionReceipt receipt = weth9.transfer(subAddress, weiAmount).sendAsync().get();
+
+            // 获取交易哈希
+            String transactionHash = receipt.getTransactionHash();
+
+            // 获取账户转换后余额
+            BigDecimal trEtherBalance = getBalance(subAddress);
+            log.info("子账户{}接收后余额是：{}，交易哈希是：{}", subAddress, trEtherBalance,
+                transactionHash);
+          } else {
+            log.info("子账户{}余额大于等于1，直接跳过", subAddress);
+          }
+
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      });
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * 提现
+   */
+  public void withdraw(String eth) {
+    try {
+      // 加载WETH合约
+      Web3j web3j = Web3jUtils.web3j;
+      Weth9 weth9 = Weth9.load(WETH_CONTRACT_ADDRESS, web3j, Web3jUtils.credentials, gasProvider);
+      String mainAddress = Web3jUtils.credentials.getAddress();
+
+      // 获取账户余额
+      BigDecimal balance = getBalance(mainAddress);
+      BigInteger nonce = Web3jUtils.getNonce(mainAddress);
+      log.info("当前主钱包地址是：{}，钱包余额是：{}，nonce是：{}，要转换的ETH个数是：{}", mainAddress,
+          balance, nonce, eth);
+
+      // 转换
+      BigDecimal ethAmount = new BigDecimal(String.valueOf(eth));
+      BigInteger weiAmount = Convert.toWei(ethAmount, Convert.Unit.ETHER).toBigInteger();
+      TransactionReceipt receipt = weth9.withdraw(weiAmount).sendAsync().get();
+
+      // 获取交易哈希
+      String transactionHash = receipt.getTransactionHash();
+
+      // 获取账户转换后余额
+      BigDecimal trEtherBalance = getBalance(mainAddress);
+      log.info("{}提现后余额是：{}，交易哈希是：{}", mainAddress, trEtherBalance, transactionHash);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

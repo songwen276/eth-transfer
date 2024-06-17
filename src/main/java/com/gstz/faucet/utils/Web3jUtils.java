@@ -4,7 +4,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
+import java.util.StringTokenizer;
 import java.util.concurrent.ExecutionException;
 import lombok.extern.slf4j.Slf4j;
 import org.web3j.crypto.Credentials;
@@ -40,12 +43,16 @@ public class Web3jUtils {
   private static final String MAX_PRIORITY_FEE_PER_GAS = "maxPriorityFeePerGas";
   private static final String MAX_FEE_PER_GAS = "maxFeePerGas";
   private static final String GASPRICE = "gasPrice";
+  private static final String WALLETPW = "metamaskpw";
+  private static final String MNEMONIC = "mnemonic";
   public static Web3j web3j;
   public static Credentials credentials;
   public static String gaslimit;
   public static String maxPriorityFeePerGas;
   public static String maxFeePerGas;
   public static String gasPrice;
+  public static String walletpw;
+  public static List<String> mnemonics;
   public static String workPath;
   public static String separator;
 
@@ -71,6 +78,15 @@ public class Web3jUtils {
     maxFeePerGas = String.valueOf(properties.get(MAX_FEE_PER_GAS));
     // 加载gasPrice
     gasPrice = String.valueOf(properties.get(GASPRICE));
+    // 加载钱包密码
+    walletpw = String.valueOf(properties.get(WALLETPW));
+    String mnemonic= String.valueOf(properties.get(MNEMONIC));
+    StringTokenizer tokenizer = new StringTokenizer(mnemonic, " ");
+    mnemonics = new ArrayList<>();
+    while (tokenizer.hasMoreTokens()) {
+      mnemonics.add(tokenizer.nextToken());
+    }
+
   }
 
   public static BigInteger getNonce(String address) {

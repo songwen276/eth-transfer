@@ -18,7 +18,17 @@ public class Weth9ContractTest {
     Weth9Contract weth9Contract;
 
     @Test
+    public void testEthDeposit() {
+        weth9Contract.ethDeposit("22");
+    }
+
+    @Test
     public void testEthTransfer() {
-        weth9Contract.ethTransfer("0.05");
+        weth9Contract.ethTransfer("0.01");
+    }
+
+    @Test
+    public void testWithdraw() {
+        weth9Contract.withdraw("6");
     }
 }

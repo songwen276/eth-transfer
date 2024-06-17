@@ -19,7 +19,7 @@ public class StrategyManagerContractTest {
     StrategyManagerContract strategyManagerContract;
 
     @Test
-    public void testEthTransfer() {
-        strategyManagerContract.wethRestake("0.01");
+    public void testWethRestake() {
+        strategyManagerContract.wethRestake("1.005");
     }
 }

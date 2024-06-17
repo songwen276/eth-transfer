@@ -50,7 +50,8 @@ public class EthDistribute {
   public static void collectTokens() {
     try {
       // 获取收集账户地址
-      Collection<String> keys = collectaAddress.values().parallelStream().map(Object::toString).toList();
+      Collection<String> keys = collectaAddress.values().parallelStream().map(Object::toString)
+          .toList();
       // 循环将子地址代币集中到主账户
       for (String key : keys) {
         // 获取子账户余额
@@ -151,17 +152,62 @@ public class EthDistribute {
       for (String key : keys) {
         String subAddress = Credentials.create(key).getAddress();
         BigDecimal subEtherBalance = Web3jUtils.getEtherBalance(subAddress);
-        log.info("当前子账户余额不小于4，直接跳过");
-        if (subEtherBalance.compareTo(new BigDecimal("4.6")) < 0) {
-          log.info("当前子账户余额小于4，开始补充{}个eth", amountPerRecipient);
+        if (subEtherBalance.compareTo(amountPerRecipient) < 0) {
+          BigDecimal add = amountPerRecipient.subtract(subEtherBalance);
+          log.info("当前子账户余额小于{}，开始补充{}个eth", amountPerRecipient, add);
           TransactionReceipt transactionReceipt = Transfer.sendFundsEIP1559(web3j, credentials,
-              subAddress, amountPerRecipient, Convert.Unit.ETHER,
+              subAddress, add, Convert.Unit.ETHER,
               new BigInteger(Web3jUtils.gaslimit),
               new BigInteger(Web3jUtils.maxPriorityFeePerGas),
               new BigInteger(Web3jUtils.maxFeePerGas)).send();
           String transactionHash = transactionReceipt.getTransactionHash();
-          log.info("{}子账户已分发{}个token，交易哈希：{}", subAddress, amountPerRecipient,
-              transactionHash);
+          log.info("{}子账户已分发{}个token，交易哈希：{}", subAddress, add, transactionHash);
+        } else {
+          log.info("当前子账户余额不小于{}，直接跳过", amountPerRecipient);
+        }
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  /**
+   * 根据需求集中代币
+   */
+  public static void collectTokens1(String eth) {
+    try {
+      // 获取主账户余额
+      Web3j web3j = Web3jUtils.web3j;
+      Credentials credentials = Web3jUtils.credentials;
+      String addressStr = credentials.getAddress();
+      BigDecimal etherBalance = Web3jUtils.getEtherBalance(addressStr);
+      BigInteger nonce = Web3jUtils.getNonce(addressStr);
+      log.info("当前主钱包地址是：{}，钱包余额是：{}，nonce是：{}", addressStr, etherBalance,
+          nonce);
+
+      // 获取子账户地址
+      Collection<String> keys = subAddress.values().parallelStream().map(Object::toString).toList();
+
+      // 数量
+      BigDecimal amountPerRecipient = new BigDecimal(eth);
+
+      // 逐个从子地址集中代币到主账户
+      for (String key : keys) {
+        Credentials subcCredentials = Credentials.create(key);
+        String suAddress = subcCredentials.getAddress();
+        BigDecimal subEtherBalance = Web3jUtils.getEtherBalance(suAddress);
+        if (subEtherBalance.compareTo(amountPerRecipient) > 0) {
+          BigDecimal collect = subEtherBalance.subtract(new BigDecimal("0.02"));
+          log.info("当前子账户余额大于{}，开始集中{}", amountPerRecipient, collect);
+          TransactionReceipt transactionReceipt = Transfer.sendFundsEIP1559(web3j, subcCredentials,
+              addressStr, collect, Convert.Unit.ETHER,
+              new BigInteger(Web3jUtils.gaslimit),
+              new BigInteger(Web3jUtils.maxPriorityFeePerGas),
+              new BigInteger(Web3jUtils.maxFeePerGas)).send();
+          String transactionHash = transactionReceipt.getTransactionHash();
+          log.info("{}子账户集中{}个token，交易哈希：{}", suAddress, collect, transactionHash);
+        } else {
+          log.info("当前子账户余额不小于{}，直接跳过", amountPerRecipient);
         }
       }
     } catch (Exception e) {
