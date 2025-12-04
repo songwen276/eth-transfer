@@ -1,13 +1,12 @@
 package com.gstz.faucet.service.transfer;
 
+import com.gstz.faucet.utils.PropertiesUtils;
 import com.gstz.faucet.utils.Web3jUtils;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Properties;
+import java.util.LinkedHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -40,21 +39,11 @@ public class EthTransfer {
   // 合约地址
   private static final String WETH_CONTRACT_ADDRESS = "0x94373a4919B3240D86eA41593D5eBa789FEF3848";
 
-  static String workPath;
-  static String separator;
-
   // 要转换ETH的地址和金额
-  static Properties ethTransfer = new Properties();
+  static LinkedHashMap<String, String> ethTransfer;
 
   static {
-    workPath = System.getProperty("user.dir");
-    separator = System.getProperty("file.separator");
-    try (FileInputStream addressFis = new FileInputStream(
-        workPath + separator + "transferaddress.properties")) {
-      ethTransfer.load(addressFis);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+    ethTransfer = PropertiesUtils.getKeyValueLinkMapFromProperFile("transferaddress.properties");
   }
 
   /**

@@ -1,13 +1,12 @@
 package com.gstz.faucet.service.distribute;
 
+import com.gstz.faucet.utils.PropertiesUtils;
 import com.gstz.faucet.utils.Web3jUtils;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.Collection;
-import java.util.Properties;
+import java.util.LinkedHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -29,19 +28,12 @@ import org.web3j.utils.Convert;
 public class EthDistribute {
 
   // 要转换ETH的地址和金额
-  static Properties subAddress = new Properties();
-  static Properties collectaAddress = new Properties();
+  static LinkedHashMap<String, String> subAddress;
+  static LinkedHashMap<String, String> collectaAddress;
 
   static {
-    try (FileInputStream addressFis = new FileInputStream(
-        Web3jUtils.workPath + Web3jUtils.separator + "subaddress.properties");
-        FileInputStream collectaAddressFis = new FileInputStream(
-            Web3jUtils.workPath + Web3jUtils.separator + "collectaddress.properties")) {
-      subAddress.load(addressFis);
-      collectaAddress.load(collectaAddressFis);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+    subAddress = PropertiesUtils.getKeyValueLinkMapFromProperFile("subaddress.properties");
+    collectaAddress = PropertiesUtils.getKeyValueLinkMapFromProperFile("collectaddress.properties");
   }
 
   /**

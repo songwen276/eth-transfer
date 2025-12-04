@@ -1,12 +1,11 @@
 package com.gstz.faucet.utils;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.concurrent.ExecutionException;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +18,7 @@ import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.core.methods.response.EthBlockNumber;
 import org.web3j.protocol.core.methods.response.EthChainId;
 import org.web3j.protocol.core.methods.response.EthGetBalance;
+import org.web3j.protocol.core.methods.response.EthGetCode;
 import org.web3j.protocol.core.methods.response.EthGetTransactionCount;
 import org.web3j.protocol.core.methods.response.EthLog;
 import org.web3j.protocol.core.methods.response.EthTransaction;
@@ -59,13 +59,8 @@ public class Web3jUtils {
   static {
     workPath = System.getProperty("user.dir");
     separator = System.getProperty("file.separator");
-    Properties properties = new Properties();
-    try (FileInputStream addressFis = new FileInputStream(
-        workPath + separator + "web3jconfig.properties")) {
-      properties.load(addressFis);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+    LinkedHashMap<String, String> properties = PropertiesUtils.getKeyValueLinkMapFromProperFile(
+        "web3jconfig.properties");
     // 加载Web3j实例，连接到Holesky测试网络
     web3j = Web3j.build(new HttpService(String.valueOf(properties.get(INFURA_URL))));
     // 加载凭证对象
@@ -80,7 +75,7 @@ public class Web3jUtils {
     gasPrice = String.valueOf(properties.get(GASPRICE));
     // 加载钱包密码
     walletpw = String.valueOf(properties.get(WALLETPW));
-    String mnemonic= String.valueOf(properties.get(MNEMONIC));
+    String mnemonic = String.valueOf(properties.get(MNEMONIC));
     StringTokenizer tokenizer = new StringTokenizer(mnemonic, " ");
     mnemonics = new ArrayList<>();
     while (tokenizer.hasMoreTokens()) {
@@ -104,11 +99,11 @@ public class Web3jUtils {
   public static long getChainId() {
     long id;
     try {
-      EthChainId ethChainId = web3j.ethChainId().send();
+      EthChainId ethChainId = web3j.ethChainId().sendAsync().get();
       BigInteger chainId = ethChainId.getChainId();
       id = Long.parseLong(String.valueOf(chainId));
-      log.info("chainId是：{}", id);
-    } catch (IOException e) {
+      log.info("chainId是：{}", Long.valueOf(id));
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
     return id;
@@ -213,6 +208,25 @@ public class Web3jUtils {
     }
     log.info("转换后的MaxFeePer是:{}", fee);
     return fee;
+  }
+
+  public static void getContractByteCode(String contractAddr, String contractName) {
+    try {
+      EthGetCode ethGetCode = web3j.ethGetCode(contractAddr, DefaultBlockParameterName.LATEST)
+          .send();
+      String code = ethGetCode.getCode();
+      List<String> codeList = new ArrayList<>();
+      codeList.add(code);
+      FileUtils.saveToFile(codeList, contractName);
+      log.info("获取并生成合约bin文件成功");
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static void main(String[] args) {
+    getContractByteCode("0x0000000000000000000000000000000000002002",
+        PropertiesUtils.workPath + PropertiesUtils.separator + "we.bin");
   }
 
 }

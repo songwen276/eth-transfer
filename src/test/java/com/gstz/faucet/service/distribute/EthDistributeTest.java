@@ -26,7 +26,7 @@ public class EthDistributeTest {
 
   @Test
   public void testAddTokens() {
-    EthDistribute.addTokens("22.1");
+    EthDistribute.addTokens("1");
   }
 
   @Test
